@@ -45,13 +45,13 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Setup model directory
-# RUN mkdir -p /models
-
-ADD . .
+RUN mkdir -p /models
 
 RUN wget -O /models/model.pth https://huggingface.co/coqui/XTTS-v2/resolve/main/model.pth?download=true
 RUN wget -O /models/config.json https://huggingface.co/coqui/XTTS-v2/resolve/main/config.json?download=true
 RUN wget -O /models/vocab.json https://huggingface.co/coqui/XTTS-v2/resolve/main/vocab.json?download=true
+
+ADD . .
 
 # CMD ["mistral"]
 RUN chmod +x /start.sh
