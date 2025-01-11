@@ -53,11 +53,21 @@ def handler(job):
     session.cookies.update(auth_cookie)
 
     try:
+        retry_post(
+            session,
+            API_ML + "/prompt_status",
+            data=json.dumps(
+                {
+                    "user_prompt_id": prompt_id,
+                    "status": "started",
+                }
+            ).encode("utf-8"),
+        )
         file_path = download_file(file_id, session)
         output_full_path = (
             temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}/output.wav"
         )
-        output_full_path.parent.mkdir(parents=True, exist_ok=True)
+        output_full_path.mkdir(parents=True, exist_ok=True)
         tts(text=prompt, file_path=output_full_path, speaker_wav=file_path)
     except Exception as e:
         print(f"runpod-worker-comfy - Error queuing workflow: {str(e)}")
