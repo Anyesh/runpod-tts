@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from pathlib import Path
@@ -64,13 +65,12 @@ def handler(job):
             ).encode("utf-8"),
         )
         file_path = download_file(file_id, session)
-        output_full_path = (
-            temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}/output.wav"
-        )
-        output_full_path.mkdir(parents=True, exist_ok=True)
+        output_path = temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}"
+        output_path.mkdir(parents=True, exist_ok=True)
+        output_full_path = f"{output_path}/output.wav"
         tts(text=prompt, file_path=output_full_path, speaker_wav=file_path)
     except Exception as e:
-        print(f"runpod-worker-comfy - Error queuing workflow: {str(e)}")
+        logging.exception(f"runpod-worker-comfy - Error queuing workflow: {str(e)}")
         retry_post(
             session,
             API_ML + "/prompt_status",
@@ -97,24 +97,25 @@ def process_output(session, prompt_id, file_id, client_id):
     )
 
     filename = os.path.basename(COMFY_OUTPUT_PATH)
-    if os.path.exists(COMFY_OUTPUT_PATH):
-        try:
-            files = {"file": (filename, open(COMFY_OUTPUT_PATH, "rb"))}
-            file_res = retry_file_upload(
-                session, API_FILE + "/upload?is_generated=true", files=files
+    try:
+        files = {"file": (filename, open(COMFY_OUTPUT_PATH, "rb"))}
+        file_res = retry_file_upload(
+            session, API_FILE + "/upload?is_generated=true", files=files
+        )
+
+        if not file_res.ok:
+            logging.info(
+                f"runpod-worker-comfy - Error uploading image: {file_res.text}"
             )
+            return {"error": f"Error uploading image: {file_res.text}"}
 
-            if not file_res.ok:
-                print(f"runpod-worker-comfy - Error uploading image: {file_res.text}")
-                return {"error": f"Error uploading image: {file_res.text}"}
+        logging.info(
+            f"runpod-worker-comfy - the image was generated and uploaded: {file_res.json()}"
+        )
 
-            print(
-                f"runpod-worker-comfy - the image was generated and uploaded: {file_res.json()}"
-            )
-
-        except Exception as e:
-            print(f"runpod-worker-comfy - Error uploading image: {str(e)}")
-            return {"error": f"Error uploading image: {str(e)}"}
+    except Exception as e:
+        logging.exception(f"runpod-worker-comfy - Error uploading image: {str(e)}")
+        return {"error": f"Error uploading image: {str(e)}"}
 
     data = json.dumps(
         {
@@ -137,7 +138,7 @@ def process_output(session, prompt_id, file_id, client_id):
 
 def retry_file_upload(session, url, retries=5, files=None):
     for i in range(retries):
-        print(f"runpod-worker-comfy - Attempt {i}/{retries} to post to {url}")
+        logging.info(f"runpod-worker-comfy - Attempt {i}/{retries} to post to {url}")
         try:
             response = session.post(url, files=files)
 
@@ -153,7 +154,7 @@ def retry_file_upload(session, url, retries=5, files=None):
 
 def retry_post(session, url, retries=5, **kwargs):
     for i in range(retries):
-        print(f"runpod-worker-comfy - Attempt {i}/{retries} to post to {url}")
+        logging.info(f"runpod-worker-comfy - Attempt {i}/{retries} to post to {url}")
         try:
             response = session.post(
                 url, **kwargs, headers={"Content-Type": "application/json"}
