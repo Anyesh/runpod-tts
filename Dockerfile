@@ -19,6 +19,7 @@ RUN add-apt-repository --yes ppa:deadsnakes/ppa && apt update --yes --quiet
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     python3.11 \
     python3.11-dev \
+    libglib2.0-0 ffmpeg libsm6 libxext6 \
     python3.11-distutils \
     python3.11-lib2to3 \
     python3.11-gdbm \
@@ -29,16 +30,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-re
     git \
     unzip
 
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 999 \
-    && update-alternatives --config python3 && ln -s /usr/bin/python3 /usr/bin/python
-
-RUN pip install --upgrade pip
+RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Add your file
 ADD . .
 
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-RUN pip install runpod
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip3 install runpod
 
 # Setup model directory
 # RUN mkdir -p /models
