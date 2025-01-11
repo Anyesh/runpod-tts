@@ -57,8 +57,20 @@ def handler(job):
         output_full_path = (
             temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}/output.wav"
         )
-        tts(prompt, output_full_path, speaker_wav=file_path)
+        output_full_path.parent.mkdir(parents=True, exist_ok=True)
+        tts(text=prompt, file_path=output_full_path, speaker_wav=file_path)
     except Exception as e:
+        print(f"runpod-worker-comfy - Error queuing workflow: {str(e)}")
+        retry_post(
+            session,
+            API_ML + "/prompt_status",
+            data=json.dumps(
+                {
+                    "user_prompt_id": prompt_id,
+                    "status": "failed",
+                }
+            ).encode("utf-8"),
+        )
         return {"error": f"Error queuing workflow: {str(e)}"}
 
     images_result = process_output(session, file_id, client_id)
