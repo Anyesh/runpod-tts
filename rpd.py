@@ -135,7 +135,7 @@ def process_output(session, prompt_id, file_id, client_id):
         }
     ).encode("utf-8")
 
-    retry_post(session, API_ML + "/set_serverless_output?sanitize=false", data=data)
+    retry_post(session, API_ML + "/set_serverless_output?post_process=false", data=data)
 
     return {
         "success": True,
