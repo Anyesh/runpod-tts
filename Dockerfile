@@ -13,30 +13,25 @@ RUN apt-get update --yes --quiet && DEBIAN_FRONTEND=noninteractive apt-get insta
 
 RUN apt-get install --reinstall ca-certificates
 
-# PYTHON 3.11
-RUN add-apt-repository --yes ppa:deadsnakes/ppa && apt update --yes --quiet
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
-    python3.11 \
-    python3.11-dev \
+    python3-pip \
+    python3-dev \
     libglib2.0-0 ffmpeg libsm6 libxext6 \
-    python3.11-distutils \
-    python3.11-lib2to3 \
-    python3.11-gdbm \
-    python3.11-tk \
-    pip \
-    wget \
-    curl \
-    git \
-    unzip
+    build-essential \
+    wget
 
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+RUN pip3 install networkx
 
-# Add your file
-ADD . .
 
 RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-RUN pip3 install runpod
+
+COPY requirements.txt .
+
+RUN pip3 install -r requirements.txt
+
+ADD . .
 
 # Setup model directory
 # RUN mkdir -p /models
