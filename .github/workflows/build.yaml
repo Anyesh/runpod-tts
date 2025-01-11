@@ -26,3 +26,4 @@ jobs:
           push: true
           tags: anyesh/chico:latest
           context: "{{defaultContext}}"
+          platforms: linux/amd64

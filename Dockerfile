@@ -9,17 +9,12 @@ RUN apt-get update --yes --quiet && DEBIAN_FRONTEND=noninteractive apt-get insta
     software-properties-common \
     gpg-agent \
     build-essential apt-utils \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get install --reinstall ca-certificates
-
-
-RUN DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet --no-install-recommends \
     python3-pip \
     python3-dev \
     libglib2.0-0 ffmpeg libsm6 libxext6 \
-    build-essential \
     wget
+
+RUN apt-get install --reinstall ca-certificates
 
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 RUN pip3 install networkx
