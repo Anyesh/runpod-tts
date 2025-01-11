@@ -39,8 +39,8 @@ def handler(job):
 
     data = job_input
 
-    prompt = data["prompt"]["text"]
-    prompt_id = data.get("prompt_id")
+    prompt = data["prompt"]["text_prompt"]
+    prompt_id = data.get("user_prompt_id")
     file_id = data.get("prompt")["file_id"]
     client_id = data["client_id"]
     token = data["token"]
@@ -71,7 +71,7 @@ def handler(job):
 def process_output(session, prompt_id, file_id, client_id):
 
     COMFY_OUTPUT_PATH = (
-        f"/comfyui/output/generated/{client_id}/{prompt_id}/{file_id}/output.wav"
+        f"{temp_dir}/generated/{client_id}/{prompt_id}/{file_id}/output.wav"
     )
 
     filename = "output.wav"
@@ -95,10 +95,14 @@ def process_output(session, prompt_id, file_id, client_id):
             return {"error": f"Error uploading image: {str(e)}"}
 
     data = json.dumps(
-        {"prompt_id": prompt_id, "output": file_res.json().get("id")}
+        {
+            "prompt_id": prompt_id,
+            "output": [file_res.json().get("id")],
+            "sanitize": False,
+        }
     ).encode("utf-8")
 
-    retry_post(session, API_ML + "/set_serverless_output", data=data)
+    retry_post(session, API_ML + "/set_serverless_output?sanitize=false", data=data)
 
     return {
         "success": True,
