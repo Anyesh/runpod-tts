@@ -2,8 +2,6 @@ FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu20.04
 
 ENV PYTHONUNBUFFERED=1
 
-
-
 # Set up the working directory
 WORKDIR /
 
