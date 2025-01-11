@@ -83,7 +83,7 @@ def handler(job):
         )
         return {"error": f"Error queuing workflow: {str(e)}"}
 
-    images_result = process_output(session, file_id, client_id)
+    images_result = process_output(session, prompt_id, file_id, client_id)
 
     result = {**images_result, "refresh_worker": REFRESH_WORKER}
 
@@ -96,7 +96,7 @@ def process_output(session, prompt_id, file_id, client_id):
         f"{temp_dir}/generated/{client_id}/{prompt_id}/{file_id}/output.wav"
     )
 
-    filename = "output.wav"
+    filename = os.path.basename(COMFY_OUTPUT_PATH)
     if os.path.exists(COMFY_OUTPUT_PATH):
         try:
             files = {"file": (filename, open(COMFY_OUTPUT_PATH, "rb"))}
