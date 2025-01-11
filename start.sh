@@ -10,4 +10,4 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 
-python3 -u rpd.py
+python3.11 -u rpd.py
