@@ -83,9 +83,9 @@ def handler(job):
         )
         return {"error": f"Error queuing workflow: {str(e)}"}
 
-    images_result = process_output(session, prompt_id, file_id, client_id)
+    contents_result = process_output(session, prompt_id, file_id, client_id)
 
-    result = {**images_result, "refresh_worker": REFRESH_WORKER}
+    result = {**contents_result, "refresh_worker": REFRESH_WORKER}
 
     return result
 
@@ -105,17 +105,27 @@ def process_output(session, prompt_id, file_id, client_id):
 
         if not file_res.ok:
             logging.info(
-                f"runpod-worker-comfy - Error uploading image: {file_res.text}"
+                f"runpod-worker-comfy - Error uploading content: {file_res.text}"
             )
-            return {"error": f"Error uploading image: {file_res.text}"}
+            return {"error": f"Error uploading content: {file_res.text}"}
 
         logging.info(
-            f"runpod-worker-comfy - the image was generated and uploaded: {file_res.json()}"
+            f"runpod-worker-comfy - the content was generated and uploaded: {file_res.json()}"
+        )
+        retry_post(
+            session,
+            API_ML + "/prompt_status",
+            data=json.dumps(
+                {
+                    "user_prompt_id": prompt_id,
+                    "status": "success",
+                }
+            ).encode("utf-8"),
         )
 
     except Exception as e:
-        logging.exception(f"runpod-worker-comfy - Error uploading image: {str(e)}")
-        return {"error": f"Error uploading image: {str(e)}"}
+        logging.exception(f"runpod-worker-comfy - Error uploading content: {str(e)}")
+        return {"error": f"Error uploading content: {str(e)}"}
 
     data = json.dumps(
         {
