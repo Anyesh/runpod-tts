@@ -53,7 +53,7 @@ def handler(job):
     session.cookies.update(auth_cookie)
 
     try:
-        file_path = download_file(file_id, token)
+        file_path = download_file(file_id, session)
         output_full_path = (
             temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}/output.wav"
         )
@@ -147,18 +147,17 @@ def retry_post(session, url, retries=5, **kwargs):
     raise Exception("Error posting")
 
 
-def download_file(file_id, auth_cookie):
+def download_file(file_id, session):
 
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     headers = {
         "Content-Type": "application/json",
-        "Cookie": f"{SESSION_COOKIE_NAME}={auth_cookie}",
     }
 
     url = f"{API_FILE}/preview/{file_id}?as_attachment=True"
 
-    response = requests.get(url, headers=headers)
+    response = session.get(url, headers=headers)
     response.raise_for_status()
 
     content_disposition = response.headers.get("content-disposition")
