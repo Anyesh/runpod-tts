@@ -4,7 +4,13 @@ from TTS.api import TTS
 from config import ASSETS_DIR, MODELS_DIR
 
 
-def tts(text: str, file_path: str, lang: str = "en", speaker_wav: str | None = None):
+def tts(
+    text: str,
+    file_path: str,
+    speaker_wav: str | None = None,
+    speed: float = 2.0,
+    language: str = "en",
+) -> None:
     if speaker_wav is None:
         speaker_wav = str(ASSETS_DIR / "speaker.mp3")
 
@@ -18,8 +24,9 @@ def tts(text: str, file_path: str, lang: str = "en", speaker_wav: str | None = N
     tts.tts_to_file(
         text=text,
         speaker_wav=speaker_wav,
-        language=lang,
         file_path=file_path,
+        speed=speed,
+        language=language,
     )
 
 

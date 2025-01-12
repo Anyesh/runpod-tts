@@ -40,7 +40,10 @@ def handler(job):
 
     data = job_input
 
-    prompt = data["prompt"]["text_prompt"]
+    _prompt_request = data["prompt"]
+    prompt = _prompt_request["text_prompt"]
+    language = _prompt_request.get("language", "en")
+    speed = _prompt_request.get("speed", 2.0)
     prompt_id = data.get("user_prompt_id")
     file_id = data.get("prompt")["file_id"]
     client_id = data["client_id"]
@@ -68,7 +71,13 @@ def handler(job):
         output_path = temp_dir / f"generated/{client_id}/{prompt_id}/{file_id}"
         output_path.mkdir(parents=True, exist_ok=True)
         output_full_path = f"{output_path}/output.wav"
-        tts(text=prompt, file_path=output_full_path, speaker_wav=file_path)
+        tts(
+            text=prompt,
+            file_path=output_full_path,
+            speaker_wav=file_path,
+            speed=speed,
+            language=language,
+        )
     except Exception as e:
         logging.exception(f"runpod-worker-comfy - Error queuing workflow: {str(e)}")
         retry_post(
@@ -135,7 +144,11 @@ def process_output(session, prompt_id, file_id, client_id):
         }
     ).encode("utf-8")
 
-    retry_post(session, API_ML + "/set_serverless_output?post_process=false", data=data)
+    retry_post(
+        session,
+        API_ML + "/set_serverless_output?post_process=false&sanitize=false",
+        data=data,
+    )
 
     return {
         "success": True,
